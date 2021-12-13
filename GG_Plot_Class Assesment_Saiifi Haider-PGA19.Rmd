@@ -1,0 +1,194 @@
+---
+title: "GG_Plot_Class Assesment_Saiifi Haider-PGA19"
+author: "Saiifi Haider"
+date: "December 13, 2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Question 1) 
+#### (I) Load the in-built dataset called trees, that consists of measurements of the girth, height, and volume of 31 black cherry trees and display rows where height is greater than 82
+```{r}
+View(trees)
+```
+##### selecting rows with Height greater than 82
+```{r}
+trees[trees$Height > 82,]
+```
+
+#### (II)Create a vector of length 4 using seq() function and showcase how to access the elements using numeric indexes, logical indexes and character indexes.
+
+
+```{r}
+vector_ <- seq(1:6)
+length(vector_)
+```
+##### Getting the element using numeric indexes
+```{r}
+vector_[3]
+vector_[1:4]
+```
+##### Getting the vector using logical indexes
+```{r}
+logical <- c("Mon","Tue","Wed","Thu")
+length(logical)    # length of the vector
+logical[c(TRUE,FALSE,FALSE,TRUE)]
+```
+
+##### Getting the vector using character indexes
+```{r}
+CI <- c('Name'='Saiifi','Age'=27,'Salary'=10L,'education'="Mtech")
+length(CI)    #length of the vector
+CI['Name']
+CI[c('Age','Salary')]
+```
+
+
+### Question 2) For the ‘StudentsPerformance’ dataset, perform the following tasks:
+
+#### (I) Analyze the student’s performance in exams and write your own observations about the students and plot the results.
+
+```{r}
+# Reading the file 
+df=read.csv("D:/Imarticus/Exam_Assesment_section/R_Programming/R Programming/Dataset/StudentsPerformance.csv")
+head(df,5)
+```
+```{r}
+# create the column name percent with student marks in percentage
+library(magrittr)
+library(dplyr)
+df <- df %>% mutate(percent=(df$math.score + df$reading.score + df$writing.score)/3)
+head(df$percent,10)
+# draw histogram 
+library(ggplot2)
+# Here we may conclude that, females have good performance than male
+par(mfrow=c(3,1), mar=c(5,4,2,1))
+hist(subset(df, gender=='male')$math.score, col='green',main='male')
+hist(subset(df, gender=='male')$reading.score, col='blue')
+hist(subset(df, gender=='male')$writing.score, col='red')
+```
+```{r}
+# From the histogram,Students from group A has more percentage than other groups
+qplot(percent, data = df, fill=race.ethnicity)
+```
+
+```{r}
+boxplot(math.score~test.preparation.course,data=df, col=rainbow(7), xlab="Test Preparation Course", ylab="Math Score")
+```
+
+**From this box plot we can see that except of some outliers students who completed the test preparation course have higher median of math score than students who did not complete the course.**
+
+```{r}
+boxplot(reading.score~test.preparation.course,data=df, col=rainbow(9), xlab="Test Preparation Course", ylab="Reading Score")
+```
+
+**From this box plot, we can see that except of some outliers students who completed the test preparation course have higher median of reading score than students who did not complete the course.**
+
+```{r}
+boxplot(writing.score~test.preparation.course,data=df, col=rainbow(5), xlab="Test Preparation Course", ylab="Writing Score")
+```
+
+**From this boxplot we can see that except of some outliers students who completed the test preparation course have higher median of writing score than students who did not complete the course.**
+
+
+#### (II) Create a function to remove outliers using the IQR method.
+```{r}
+ggplot(data = df,aes(x=math.score)) + geom_boxplot( fill = "blue",col = "red")
+
+Q1 <- quantile(df$math.score, .25)
+Q3 <- quantile(df$math.score, .75)
+IQR <- IQR(df$math.score)
+```
+
+```{r}
+m_outliers <- subset(df, df$math.score> (Q1 - 1.5*IQR) & df$math.score< (Q3 + 1.5*IQR))
+
+ggplot(data = m_outliers, aes(x=math.score)) + geom_boxplot( fill = "blue",col = "red") #we remove the outliers
+```
+#### _for reading score_
+```{r}
+ggplot(data = df,aes(x=reading.score)) + geom_boxplot( fill = "green",col = "red")
+Q1 <- quantile(df$reading.score, .25)
+Q3 <- quantile(df$reading.score, .75)
+IQR <- IQR(df$reading.score)
+```
+
+#### _Removing outliers_
+
+```{r}
+r_outliers <- subset(df, df$reading.score> (Q1 - 1.5*IQR) & df$reading.score< (Q3 + 1.5*IQR))
+
+ggplot(data = r_outliers, aes(x=reading.score)) + geom_boxplot( fill = "green",col = "red")
+```
+
+#### _for writing score_
+
+```{r}
+ggplot(data = df,aes(x=writing.score)) + geom_boxplot( fill = "red",col = "blue")
+Q1 <- quantile(df$writing.score, .25)
+Q3 <- quantile(df$writing.score, .75)
+IQR <- IQR(df$writing.score)
+```
+
+
+#### _Removing outliers_
+```{r}
+w_outliers <- subset(df, df$writing.score> (Q1 - 1.5*IQR) & df$writing.score< (Q3 + 1.5*IQR))
+
+ggplot(data = w_outliers, aes(x=writing.score)) + geom_boxplot( fill = "red",col = "blue")
+```
+
+
+
+### Question 3) For the given ‘chinook’ database, perform the following tasks:
+
+#### (I) Connect to the above database and convert all the tables into data frame.
+
+**To connect, we need to install the packages named as 'RSQLite','DBI'**
+
+```{r}
+setwd("D:/Imarticus/Exam_Assesment_section/R_Programming/R Programming/Dataset")
+library("RSQLite")
+library("DBI")
+db=dbConnect(SQLite(),dbname="chinook.db")
+dbListTables(db)
+dbListFields(db,"employees")
+```
+
+#### (II)  Print the different types of music available.
+
+```{r}
+Type_of_music <- dbGetQuery(db,"select * from genres")
+Type_of_music 
+```
+
+#### (III) List out all the artists from the entire database.
+
+```{r}
+artist <- dbGetQuery(db, "select distinct Name from artists")
+head(artist,10)
+```
+
+#### (IV)  List out all the countries where the customer resides and plot a bar graph showing the number of customers from the respective country.
+
+```{r}
+countries <- dbGetQuery(db,"select country from customers")
+head(countries,10)
+
+
+cust <- dbGetQuery(db,"select * from customers")
+head(cust,10)
+
+customer_count <- dbGetQuery(db,
+                             "select country,count(CustomerId) as count_of_customers 
+                              from customers group by country order by count_of_customers desc")
+customer_count
+```
+
+
+
