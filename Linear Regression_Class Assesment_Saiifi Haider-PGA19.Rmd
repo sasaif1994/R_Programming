@@ -1,0 +1,156 @@
+---
+title: "Linear Regression_Class Assesment_Saiifi Haider-PGA19"
+author: "Saiifi Haider"
+date: "December 14, 2021"
+output:
+pdf_document: default
+html_document: default
+editor_options: 
+  chunk_output_type: inline
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#### Reading the Data-set
+
+```{r}
+train= read.csv("D:/Imarticus/Exam_Assesment_section/R_Programming/Linear_Regression/Dataset/PropertyTrainData.csv")
+test = read.csv("D:/Imarticus/Exam_Assesment_section/R_Programming/Linear_Regression/Dataset/PropertyTestData.csv")
+```
+
+#### Concatinating train and test data.
+
+```{r}
+df = rbind(train,test)
+```
+
+#### Viewing the data
+```{r}
+View(df)
+```
+
+#### Basic information about the data
+
+```{r}
+str(df)
+```
+
+```{r}
+summary(df)
+```
+
+#### Checking the null values
+
+```{r}
+sum(is.na(df))
+```
+
+## Exploratory Data Analysis
+
+#### correlation matrix
+
+```{r}
+cor_mat = cor(df, method = 'pearson', use = 'complete.obs')
+cor_mat
+```
+
+#### Plot the correlation
+
+```{r}
+library(DataExplorer)
+plot_correlation(na.omit(df), maxcat = 5L)
+```
+
+#### Pairplot
+
+```{r}
+library(ggplot2)
+library(GGally)
+ggpairs(df, columns= c('Price','Sea','Area','Elevation','Sewer','Days','Flood','Distance'))
+```
+
+#### Boxplot
+
+```{r}
+par(mfrow=c(2,4))
+with(df, boxplot(Price))      
+with(df, boxplot(Sea))
+with(df, boxplot(Area))
+with(df, boxplot(Elevation))
+with(df, boxplot(Sewer))
+with(df, boxplot(Days))
+with(df, boxplot(Flood))
+with(df, boxplot(Distance))
+```
+
+#### Remove the ouliers from price and sewer
+
+```{r}
+box_plot_price<-ggplot(data=df, aes(y = Price)) 
+box_plot_price+ geom_boxplot(outlier.shape = NA) +
+  coord_cartesian(ylim =  c(1, 35))
+```
+
+```{r}
+box_plot_sewer<-ggplot(data=df, aes(y = Sewer)) 
+box_plot_sewer+ geom_boxplot(outlier.shape = NA) +
+  coord_cartesian(ylim =  c(0,9000))
+```
+
+#### plot the scatter plot
+
+```{r}
+qplot(Area, Price, data = df)
+qplot(Elevation, Price, data = df)
+qplot(Sewer, Price, data = df)
+qplot(Days, Price, data = df)
+qplot(Distance, Price, data= df)
+```
+
+#### Feature Scaling
+
+```{r}
+train[,2] = scale(train[,2])     #select only sea column
+test[,2] = scale(test[,2])
+
+train[,7] = scale(train[,7])     #select only Flood column
+test[,7] = scale(test[,7])
+```
+
+#### Build the model
+
+```{r}
+lm_model <- lm(Price ~., data = train)
+summary(lm_model)
+```
+
+#### Predict the value
+
+```{r}
+lm_pred <- predict(lm_model, newdata = test)
+lm_pred
+head(test$Price)
+```
+
+#### Cost function
+
+```{r}
+resids <- data.frame(test$Price, lm_pred,
+                     residuals= test$Price - lm_pred)
+head(resids, 10)
+```
+
+#### Evaluation matrix
+
+```{r}
+mse_lm <- mean((resids$residuals)^2, na.rm = T)
+head(mse_lm, 5)
+
+```
+
+```{r}
+rmse_lm <- sqrt(mse_lm)
+rmse_lm
+```
